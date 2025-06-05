@@ -17,6 +17,7 @@ void print_menu() {
     printf("8. Умножить матрицы\n");
     printf("9. Скопировать матрицу\n");
     printf("10. Матричная экспонента\n");
+    printf("11. Решить СЛАУ Ax=B (тест Гаусса)\n");
     printf("0. Выход\n");
     printf("Выберите операцию: ");
 }
@@ -32,8 +33,8 @@ int main() {
     setlocale(LC_CTYPE, "Russian");
     
     matrix *A = matrix_alloc(2, 2);
-    *matrix_ptr(A, 0, 0) = 1; *matrix_ptr(A, 0, 1) = 2;
-    *matrix_ptr(A, 1, 0) = 3; *matrix_ptr(A, 1, 1) = 4;
+    *matrix_ptr(A, 0, 0) = 2; *matrix_ptr(A, 0, 1) = 0;
+    *matrix_ptr(A, 1, 0) = 0; *matrix_ptr(A, 1, 1) = -1;
 
     matrix *B = matrix_alloc(2, 2);
     *matrix_ptr(B, 0, 0) = 5; *matrix_ptr(B, 0, 1) = 6;
@@ -151,6 +152,42 @@ int main() {
                     matrix_free(result);
                 } else {
                     printf("Ошибка вычисления экспоненты!\n");
+                }
+                break;
+            
+            case 11:
+                {
+                    matrix *gauss_A = matrix_alloc(3, 3);
+                    matrix *gauss_B = matrix_alloc(3, 1);
+                    matrix *gauss_X = matrix_alloc(3, 1);
+
+                    if (!gauss_A || !gauss_B || !gauss_X) {
+                        if(gauss_A) matrix_free(gauss_A);
+                        if(gauss_B) matrix_free(gauss_B);
+                        if(gauss_X) matrix_free(gauss_X);
+                        break;
+                    }
+
+                    *matrix_ptr(gauss_A, 0, 0) = 0; *matrix_ptr(gauss_A, 0, 1) = 0; *matrix_ptr(gauss_A, 0, 2) = 1;
+                    *matrix_ptr(gauss_A, 1, 0) = 0; *matrix_ptr(gauss_A, 1, 1) = 1; *matrix_ptr(gauss_A, 1, 2) = 0;
+                    *matrix_ptr(gauss_A, 2, 0) = 1; *matrix_ptr(gauss_A, 2, 1) = 0; *matrix_ptr(gauss_A, 2, 2) = 0;
+
+                    *matrix_ptr(gauss_B, 0, 0) = 1;
+                    *matrix_ptr(gauss_B, 1, 0) = 2;
+                    *matrix_ptr(gauss_B, 2, 0) = 3;
+
+                    printf("Матрица A для теста:\n");
+                    matrix_print(gauss_A);
+                    printf("Вектор B для теста:\n");
+                    matrix_print(gauss_B);
+
+                    matrix_solve_gauss(gauss_A, gauss_B, gauss_X, 1e-9);
+                    printf("Решение X:\n");
+                    matrix_print(gauss_X);
+
+                    matrix_free(gauss_A);
+                    matrix_free(gauss_B);
+                    matrix_free(gauss_X);
                 }
                 break;
                 

@@ -6,44 +6,46 @@
 #include <string.h>
 
 matrix *matrix_exp(const matrix *A, double eps) {
-    if (matrix_get_rows(A) != matrix_get_cols(A)) return NULL;
+    if (matrix_get_rows(A) != matrix_get_cols(A)) return NULL; 
     
-    matrix *exp = matrix_alloc_identity(matrix_get_rows(A), matrix_get_cols(A));
-    if (!exp) return NULL;
+    matrix *exp_sum = matrix_alloc_identity(matrix_get_rows(A), matrix_get_cols(A)); 
+    if (!exp_sum) return NULL;
     
-    matrix *term = matrix_copy(A);
-    if (!term) {
-        matrix_free(exp);
+    matrix *current_term = matrix_copy(A); 
+    if (!current_term) {
+        matrix_free(exp_sum);
         return NULL;
     }
     
-    double factor = 1.0;
-    int k = 1;
+    int k_denominator = 1; 
     
-    while (matrix_norm(term) >= eps) {
-        matrix_add(exp, term);
+    while (matrix_norm(current_term) >= eps) {
+        matrix_add(exp_sum, current_term); 
         
-        matrix *new_term = matrix_alloc(matrix_get_rows(A), matrix_get_cols(A));
-        if (!new_term) {
-            matrix_free(term);
-            matrix_free(exp);
+        matrix *next_term_unscaled = matrix_alloc(matrix_get_rows(A), matrix_get_cols(A));
+        if (!next_term_unscaled) {
+            matrix_free(current_term);
+            matrix_free(exp_sum);
             return NULL;
         }
-        if (matrix_mul(new_term, term, A) != 0) {
-            matrix_free(new_term);
-            matrix_free(term);
-            matrix_free(exp);
+
+        if (matrix_mul(next_term_unscaled, current_term, A) != 0) {
+            matrix_free(next_term_unscaled);
+            matrix_free(current_term);
+            matrix_free(exp_sum);
             return NULL;
         }
-        factor /= ++k;
-        matrix_smul(new_term, factor);
         
-        matrix_free(term);
-        term = new_term;
+        matrix_free(current_term); 
+        current_term = next_term_unscaled; 
+
+        k_denominator++; 
+
+        matrix_smul(current_term, 1.0 / (double)k_denominator); 
     }
     
-    matrix_free(term);
-    return exp;
+    matrix_free(current_term);
+    return exp_sum;
 }
 
 static int find_pivot(const matrix *A, size_t column, size_t start_row, size_t *pivot_row) {
